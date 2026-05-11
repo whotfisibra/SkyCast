@@ -14,13 +14,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,6 +46,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ibra.weatherapp.data.db.WeatherEntity
+import com.ibra.weatherapp.navigation.ROUTE_HOME
+import com.ibra.weatherapp.navigation.ROUTE_PINNED
 import com.ibra.weatherapp.viewmodel.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,91 +55,130 @@ import com.ibra.weatherapp.viewmodel.WeatherViewModel
 fun RecentScreen(navController: NavController, viewModel: WeatherViewModel) {
     val recentCities by viewModel.recentCities.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1A237E),
-                        Color(0xFF42A5F5)
-                    )
-                )
-            )
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Recently Searched",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        bottomBar = {
+            NavigationBar(containerColor = Color.White.copy(alpha = 0.15f)) {
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_PINNED) },
+                    icon = {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            Icons.Default.Home,
+                            contentDescription = "Pinned",
                             tint = Color.White
                         )
-                    }
-                },
-                actions = {
-                    if (recentCities.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.deleteAllCities() }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete All",
-                                tint = Color.White
+                    },
+                    label = { Text("Pinned", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_HOME) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Search", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {},
+                    icon = {
+                        Icon(
+                            Icons.Default.List,
+                            contentDescription = "Recent",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Recent", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1A237E), Color(0xFF42A5F5))
+                    )
+                )
+                .padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Recently Searched",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    actions = {
+                        if (recentCities.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.deleteAllCities() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete All",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
+                )
+
+                if (recentCities.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "☁️", fontSize = 64.sp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "No cities searched yet",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Go back and search for a city\nto see it appear here",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-
-            if (recentCities.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "☁️",
-                            fontSize = 64.sp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "No cities searched yet",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Go back and search for a city\nto see it appear here",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(recentCities) { city ->
-                        RecentCityCard(
-                            city = city,
-                            onDelete = { viewModel.deleteCity(city.id) }
-                        )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(recentCities) { city ->
+                            RecentCityCard(
+                                city = city,
+                                onDelete = { viewModel.deleteCity(city.id) }
+                            )
+                        }
                     }
                 }
             }

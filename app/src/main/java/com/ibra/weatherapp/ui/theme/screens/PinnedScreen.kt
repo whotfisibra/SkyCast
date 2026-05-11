@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,7 +33,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,7 +40,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,15 +51,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.ibra.weatherapp.data.model.WeatherResponse
 import com.ibra.weatherapp.data.api.RetrofitInstance
+import com.ibra.weatherapp.data.model.WeatherResponse
+import com.ibra.weatherapp.navigation.ROUTE_HOME
+import com.ibra.weatherapp.navigation.ROUTE_RECENT
 import com.ibra.weatherapp.viewmodel.API_KEY
 import com.ibra.weatherapp.viewmodel.WeatherViewModel
 import kotlinx.coroutines.launch
@@ -71,7 +69,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun PinnedScreen(navController: NavController, viewModel: WeatherViewModel) {
 
-    val pinnedCities = remember { mutableStateListOf("Nairobi", "London", "New York", "Tokyo", "Dubai") }
+    val pinnedCities = remember {
+        mutableStateListOf("Nairobi", "London", "New York", "Tokyo", "Dubai")
+    }
     val weatherResults = remember { mutableStateListOf<WeatherResponse?>() }
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
@@ -123,88 +123,99 @@ fun PinnedScreen(navController: NavController, viewModel: WeatherViewModel) {
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1A237E), Color(0xFF42A5F5))
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "📍 Pinned Cities",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
                 )
             )
-    ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "📍 Pinned Cities",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
-                )
-            },
-            floatingActionButton = {
-                if (pinnedCities.size < 5) {
-                    FloatingActionButton(
-                        onClick = { showDialog = true },
-                        containerColor = Color.White.copy(alpha = 0.3f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add city",
-                            tint = Color.White
-                        )
-                    }
-                }
-            },
-            bottomBar = {
-                NavigationBar(containerColor = Color.White.copy(alpha = 0.15f)) {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { navController.navigate("home") },
-                        icon = {
-                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
-                        },
-                        label = { Text("Search", color = Color.White, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.White.copy(alpha = 0.2f)
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = {},
-                        icon = {
-                            Icon(Icons.Default.Home, contentDescription = "Pinned", tint = Color.White)
-                        },
-                        label = { Text("Pinned", color = Color.White, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.White.copy(alpha = 0.2f)
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { navController.navigate("recent") },
-                        icon = {
-                            Icon(Icons.Default.List, contentDescription = "Recent", tint = Color.White)
-                        },
-                        label = { Text("Recent", color = Color.White, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.White.copy(alpha = 0.2f)
-                        )
+        },
+        floatingActionButton = {
+            if (pinnedCities.size < 5) {
+                FloatingActionButton(
+                    onClick = { showDialog = true },
+                    containerColor = Color.White.copy(alpha = 0.3f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add city",
+                        tint = Color.White
                     )
                 }
             }
-        ) { innerPadding ->
+        },
+        bottomBar = {
+            NavigationBar(containerColor = Color.White.copy(alpha = 0.15f)) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {},
+                    icon = {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Pinned",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Pinned", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_HOME) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Search", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_RECENT) },
+                    icon = {
+                        Icon(
+                            Icons.Default.List,
+                            contentDescription = "Recent",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Recent", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1A237E), Color(0xFF42A5F5))
+                    )
+                )
+                .padding(innerPadding)
+        ) {
             if (isLoading) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -221,7 +232,6 @@ fun PinnedScreen(navController: NavController, viewModel: WeatherViewModel) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {

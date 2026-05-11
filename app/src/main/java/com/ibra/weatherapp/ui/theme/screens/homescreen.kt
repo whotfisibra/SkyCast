@@ -15,17 +15,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,7 +54,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.ibra.weatherapp.navigation.ROUTE_FORECAST
+import com.ibra.weatherapp.navigation.ROUTE_PINNED
 import com.ibra.weatherapp.navigation.ROUTE_RECENT
 import com.ibra.weatherapp.viewmodel.WeatherUiState
 import com.ibra.weatherapp.viewmodel.WeatherViewModel
@@ -116,9 +125,13 @@ fun getTimeDifference(timezoneOffsetSeconds: Int): String {
 @Composable
 fun WeatherIcon(iconCode: String, size: Dp = 64.dp) {
     AsyncImage(
-        model = "https://openweathermap.org/img/wn/$iconCode@2x.png",
+        model = ImageRequest.Builder(LocalContext.current)
+            .data("https://openweathermap.org/img/wn/$iconCode@2x.png")
+            .crossfade(true)
+            .build(),
         contentDescription = "Weather icon",
-        modifier = Modifier.size(size)
+        modifier = Modifier.size(size),
+        contentScale = ContentScale.Fit
     )
 }
 
@@ -175,284 +188,335 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel) {
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = backgroundBrush)
-    ) {
-        Column(
+    Scaffold(
+        containerColor = Color.Transparent,
+        bottomBar = {
+            NavigationBar(containerColor = Color.White.copy(alpha = 0.15f)) {
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_PINNED) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Pinned",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Pinned", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {},
+                    icon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Search", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_RECENT) },
+                    icon = {
+                        Icon(
+                            Icons.Default.List,
+                            contentDescription = "Recent",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Recent", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(brush = backgroundBrush)
+                .padding(innerPadding)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Text(
-                text = "SkyCast",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Search bar + autocomplete
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { viewModel.onSearchQueryChange(it) },
-                            placeholder = {
-                                Text(
-                                    "Enter city name...",
-                                    color = Color.White.copy(alpha = 0.5f)
-                                )
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                            ),
-                            singleLine = true
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = {
-                                if (searchQuery.isNotEmpty()) {
-                                    viewModel.searchWeather(searchQuery)
-                                }
-                            },
-                            modifier = Modifier
-                                .background(
-                                    Color.White.copy(alpha = 0.2f),
-                                    RoundedCornerShape(12.dp)
-                                )
-                                .size(56.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = Color.White
-                            )
-                        }
-                    }
-
-                    // Autocomplete dropdown
-                    if (suggestions.isNotEmpty()) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .zIndex(1f),
-                            shape = RoundedCornerShape(
-                                bottomStart = 12.dp,
-                                bottomEnd = 12.dp
-                            ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF1A237E).copy(alpha = 0.95f)
-                            )
-                        ) {
-                            Column {
-                                suggestions.forEachIndexed { index, city ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                viewModel.onSearchQueryChange(city)
-                                                viewModel.searchWeather(city)
-                                            }
-                                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(text = "📍", fontSize = 14.sp)
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = city,
-                                            fontSize = 15.sp,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    }
-                                    if (index < suggestions.size - 1) {
-                                        Divider(
-                                            color = Color.White.copy(alpha = 0.1f),
-                                            thickness = 0.5.dp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            when (weatherState) {
-                is WeatherUiState.Idle -> {
-                    Text(
-                        text = "Search for a city to see the weather",
-                        color = Color.White.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp
-                    )
-                }
-                is WeatherUiState.Loading -> {
-                    CircularProgressIndicator(color = Color.White)
-                }
-                is WeatherUiState.Success -> {
-                    val data = (weatherState as WeatherUiState.Success).data
-                    val localTime = getLocalTime(data.timezone)
-                    val localDate = getLocalDate(data.timezone)
-                    val timeDiff = getTimeDifference(data.timezone)
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White.copy(alpha = 0.2f)
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "${data.cityName}, ${data.sys.country}",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            // Local time of the city
-                            Text(
-                                text = "🕐 $localTime  •  $localDate",
-                                fontSize = 14.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            // Time difference from user
-                            Card(
-                                shape = RoundedCornerShape(20.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.15f)
-                                )
-                            ) {
-                                Text(
-                                    text = timeDiff,
-                                    fontSize = 12.sp,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(
-                                        horizontal = 12.dp,
-                                        vertical = 4.dp
-                                    )
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                            WeatherIcon(
-                                iconCode = data.weather[0].icon,
-                                size = 100.dp
-                            )
-                            Text(
-                                text = "${data.main.temp.toInt()}°C",
-                                fontSize = 64.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = data.weather[0].description.replaceFirstChar { it.uppercase() },
-                                fontSize = 18.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                Text(
-                                    text = "↓ ${data.main.tempMin.toInt()}°C",
-                                    fontSize = 14.sp,
-                                    color = Color.White.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    text = "↑ ${data.main.tempMax.toInt()}°C",
-                                    fontSize = 14.sp,
-                                    color = Color.White.copy(alpha = 0.7f)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                WeatherInfoItem(
-                                    label = "Feels Like",
-                                    value = "${data.main.feelsLike.toInt()}°C"
-                                )
-                                WeatherInfoItem(
-                                    label = "Humidity",
-                                    value = "${data.main.humidity}%"
-                                )
-                                WeatherInfoItem(
-                                    label = "Wind",
-                                    value = "${data.wind.speed} m/s"
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    viewModel.getForecast(searchQuery)
-                                    navController.navigate(ROUTE_FORECAST)
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.White.copy(alpha = 0.3f)
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("See 5 Day Forecast", color = Color.White)
-                            }
-                        }
-                    }
-                }
-                is WeatherUiState.Error -> {
-                    val message = (weatherState as WeatherUiState.Error).message
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Red.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Text(
-                            text = "Error: $message",
-                            color = Color.White,
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = { navController.navigate(ROUTE_RECENT) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.2f)
-                ),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Recently Searched Cities", color = Color.White)
-            }
+                Spacer(modifier = Modifier.height(40.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.navigate(ROUTE_PINNED) }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "SkyCast",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(48.dp))
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { viewModel.onSearchQueryChange(it) },
+                                placeholder = {
+                                    Text(
+                                        "Enter city name...",
+                                        color = Color.White.copy(alpha = 0.5f)
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color.White,
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                                ),
+                                singleLine = true
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        viewModel.searchWeather(searchQuery)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .background(
+                                        Color.White.copy(alpha = 0.2f),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .size(56.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+
+                        if (suggestions.isNotEmpty()) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .zIndex(1f),
+                                shape = RoundedCornerShape(
+                                    bottomStart = 12.dp,
+                                    bottomEnd = 12.dp
+                                ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFF1A237E).copy(alpha = 0.95f)
+                                )
+                            ) {
+                                Column {
+                                    suggestions.forEachIndexed { index, city ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    viewModel.onSearchQueryChange(city)
+                                                    viewModel.searchWeather(city)
+                                                }
+                                                .padding(
+                                                    horizontal = 16.dp,
+                                                    vertical = 12.dp
+                                                ),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(text = "📍", fontSize = 14.sp)
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = city,
+                                                fontSize = 15.sp,
+                                                color = Color.White,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                        if (index < suggestions.size - 1) {
+                                            Divider(
+                                                color = Color.White.copy(alpha = 0.1f),
+                                                thickness = 0.5.dp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                when (weatherState) {
+                    is WeatherUiState.Idle -> {
+                        Text(
+                            text = "Search for a city to see the weather",
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 16.sp
+                        )
+                    }
+                    is WeatherUiState.Loading -> {
+                        CircularProgressIndicator(color = Color.White)
+                    }
+                    is WeatherUiState.Success -> {
+                        val data = (weatherState as WeatherUiState.Success).data
+                        val localTime = getLocalTime(data.timezone)
+                        val localDate = getLocalDate(data.timezone)
+                        val timeDiff = getTimeDifference(data.timezone)
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White.copy(alpha = 0.2f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "${data.cityName}, ${data.sys.country}",
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "🕐 $localTime  •  $localDate",
+                                    fontSize = 14.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Card(
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.White.copy(alpha = 0.15f)
+                                    )
+                                ) {
+                                    Text(
+                                        text = timeDiff,
+                                        fontSize = 12.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(
+                                            horizontal = 12.dp,
+                                            vertical = 4.dp
+                                        )
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                WeatherIcon(
+                                    iconCode = data.weather[0].icon,
+                                    size = 100.dp
+                                )
+                                Text(
+                                    text = "${data.main.temp.toInt()}°C",
+                                    fontSize = 64.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = data.weather[0].description.replaceFirstChar { it.uppercase() },
+                                    fontSize = 18.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Text(
+                                        text = "↓ ${data.main.tempMin.toInt()}°C",
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                    Text(
+                                        text = "↑ ${data.main.tempMax.toInt()}°C",
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    WeatherInfoItem(
+                                        label = "Feels Like",
+                                        value = "${data.main.feelsLike.toInt()}°C"
+                                    )
+                                    WeatherInfoItem(
+                                        label = "Humidity",
+                                        value = "${data.main.humidity}%"
+                                    )
+                                    WeatherInfoItem(
+                                        label = "Wind",
+                                        value = "${data.wind.speed} m/s"
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                androidx.compose.material3.Button(
+                                    onClick = {
+                                        viewModel.getForecast(searchQuery)
+                                        navController.navigate(ROUTE_FORECAST)
+                                    },
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = Color.White.copy(alpha = 0.3f)
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("See 5 Day Forecast", color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                    is WeatherUiState.Error -> {
+                        val message = (weatherState as WeatherUiState.Error).message
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.Red.copy(alpha = 0.3f)
+                            )
+                        ) {
+                            Text(
+                                text = "Error: $message",
+                                color = Color.White,
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

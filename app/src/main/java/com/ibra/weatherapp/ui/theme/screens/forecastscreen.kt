@@ -17,8 +17,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +29,10 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +55,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ibra.weatherapp.data.model.ForecastItem
+import com.ibra.weatherapp.navigation.ROUTE_HOME
+import com.ibra.weatherapp.navigation.ROUTE_PINNED
+import com.ibra.weatherapp.navigation.ROUTE_RECENT
 import com.ibra.weatherapp.viewmodel.ForecastUiState
 import com.ibra.weatherapp.viewmodel.WeatherViewModel
 
@@ -81,105 +91,157 @@ fun formatDay(dateTime: String): String {
 fun ForecastScreen(navController: NavController, viewModel: WeatherViewModel) {
     val forecastState by viewModel.forecastState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1A237E), Color(0xFF42A5F5))
-                )
-            )
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "5 Day Forecast",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        bottomBar = {
+            NavigationBar(containerColor = Color.White.copy(alpha = 0.15f)) {
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_PINNED) },
+                    icon = {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            Icons.Default.Home,
+                            contentDescription = "Pinned",
                             tint = Color.White
                         )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    },
+                    label = { Text("Pinned", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
+                    )
                 )
-            )
-
-            when (forecastState) {
-                is ForecastUiState.Idle -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No forecast data available",
-                            color = Color.White,
-                            textAlign = TextAlign.Center
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_HOME) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
                         )
-                    }
-                }
-                is ForecastUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
-                }
-                is ForecastUiState.Success -> {
-                    val data = (forecastState as ForecastUiState.Success).data
-
-                    // Group by day
-                    val groupedByDay = data.list.groupBy {
-                        it.dateTime.substring(0, 10)
-                    }
-
-                    Text(
-                        text = "${data.city.name}, ${data.city.country}",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                    },
+                    label = { Text("Search", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
                     )
-                    Text(
-                        text = "Tap a day to see hourly breakdown",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate(ROUTE_RECENT) },
+                    icon = {
+                        Icon(
+                            Icons.Default.List,
+                            contentDescription = "Recent",
+                            tint = Color.White
+                        )
+                    },
+                    label = { Text("Recent", color = Color.White, fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.White.copy(alpha = 0.2f)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1A237E), Color(0xFF42A5F5))
+                    )
+                )
+                .padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "5 Day Forecast",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
+                )
 
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(groupedByDay.entries.toList()) { (date, items) ->
-                            ExpandableDayCard(date = date, items = items)
+                when (forecastState) {
+                    is ForecastUiState.Idle -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No forecast data available",
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
-                }
-                is ForecastUiState.Error -> {
-                    val message = (forecastState as ForecastUiState.Error).message
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    is ForecastUiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White)
+                        }
+                    }
+                    is ForecastUiState.Success -> {
+                        val data = (forecastState as ForecastUiState.Success).data
+                        val groupedByDay = data.list.groupBy {
+                            it.dateTime.substring(0, 10)
+                        }
+
                         Text(
-                            text = "Error: $message",
+                            text = "${data.city.name}, ${data.city.country}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
+                        Text(
+                            text = "Tap a day to see hourly breakdown",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(groupedByDay.entries.toList()) { (date, items) ->
+                                ExpandableDayCard(date = date, items = items)
+                            }
+                        }
+                    }
+                    is ForecastUiState.Error -> {
+                        val message = (forecastState as ForecastUiState.Error).message
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Error: $message",
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -202,7 +264,6 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
         )
     ) {
         Column {
-            // Day summary row — tap to expand
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -252,7 +313,6 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                 }
             }
 
-            // Expanded hourly breakdown
             if (expanded) {
                 Divider(color = Color.White.copy(alpha = 0.2f), thickness = 0.5.dp)
                 items.forEach { item ->
@@ -263,7 +323,6 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Time label
                         Column(modifier = Modifier.width(100.dp)) {
                             Text(
                                 text = getTimeLabel(item.dateTime),
@@ -277,11 +336,7 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                                 color = Color.White.copy(alpha = 0.5f)
                             )
                         }
-
-                        // Icon
                         WeatherIcon(iconCode = item.weather[0].icon, size = 36.dp)
-
-                        // Description
                         Text(
                             text = item.weather[0].description.replaceFirstChar { it.uppercase() },
                             fontSize = 12.sp,
@@ -289,8 +344,6 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                             modifier = Modifier.width(90.dp),
                             textAlign = TextAlign.Center
                         )
-
-                        // Temp
                         Text(
                             text = "${item.main.temp.toInt()}°C",
                             fontSize = 16.sp,

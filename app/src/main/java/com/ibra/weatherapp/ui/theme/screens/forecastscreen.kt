@@ -199,6 +199,7 @@ fun ForecastScreen(navController: NavController, viewModel: WeatherViewModel) {
                     }
                     is ForecastUiState.Success -> {
                         val data = (forecastState as ForecastUiState.Success).data
+
                         val groupedByDay = data.list.groupBy {
                             it.dateTime.substring(0, 10)
                         }
@@ -214,7 +215,10 @@ fun ForecastScreen(navController: NavController, viewModel: WeatherViewModel) {
                             text = "Tap a day to see hourly breakdown",
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 4.dp
+                            )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -280,7 +284,8 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                         color = Color.White
                     )
                     Text(
-                        text = firstItem.weather[0].description.replaceFirstChar { it.uppercase() },
+                        text = firstItem.weather[0].description
+                            .replaceFirstChar { it.uppercase() },
                         fontSize = 12.sp,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -338,7 +343,8 @@ fun ExpandableDayCard(date: String, items: List<ForecastItem>) {
                         }
                         WeatherIcon(iconCode = item.weather[0].icon, size = 36.dp)
                         Text(
-                            text = item.weather[0].description.replaceFirstChar { it.uppercase() },
+                            text = item.weather[0].description
+                                .replaceFirstChar { it.uppercase() },
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.8f),
                             modifier = Modifier.width(90.dp),
